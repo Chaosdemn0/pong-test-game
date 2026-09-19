@@ -68,6 +68,7 @@ class MatchState:
     right_score: int = 0
     winner: Side | None = None
     serve_number: int = 0
+    last_event: str | None = None
 
     def reset_round(self, toward: Side) -> None:
         self.left.y = self.right.y = (HEIGHT - PADDLE_HEIGHT) / 2
@@ -99,9 +100,11 @@ class MatchState:
         if self.ball.y - self.ball.radius < 0:
             self.ball.y = self.ball.radius
             self.ball.vy = abs(self.ball.vy)
+            self.last_event = "wall"
         elif self.ball.y + self.ball.radius > HEIGHT:
             self.ball.y = HEIGHT - self.ball.radius
             self.ball.vy = -abs(self.ball.vy)
+            self.last_event = "wall"
 
     def _intersects(self, paddle: Paddle) -> bool:
         return (
@@ -117,6 +120,7 @@ class MatchState:
         self.ball.speed = min(self.ball.speed + BALL_SPEED_STEP, MAX_BALL_SPEED)
         self.ball.vx = direction * cos(angle) * self.ball.speed
         self.ball.vy = sin(angle) * self.ball.speed
+        self.last_event = "paddle"
         if direction > 0:
             self.ball.x = paddle.x + paddle.width + self.ball.radius
         else:
@@ -137,6 +141,7 @@ class MatchState:
             self.left_score += 1
             scorer = "left"
         if scorer:
+            self.last_event = "score"
             if (self.left_score if scorer == "left" else self.right_score) >= WINNING_SCORE:
                 self.winner = scorer
             else:

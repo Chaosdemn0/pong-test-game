@@ -2,6 +2,8 @@ import math
 
 import pytest
 
+from sounds import build_retro_music, build_retro_sfx
+
 from game_logic import (
     AI_SPEED,
     BALL_RADIUS,
@@ -70,3 +72,34 @@ def test_ai_moves_only_toward_an_approaching_ball_and_is_capped():
     state.ball.y = HEIGHT
     state.update_ai(10)
     assert state.right.y == HEIGHT - PADDLE_HEIGHT
+
+
+def test_gameplay_events_record_the_latest_collision_or_score_action():
+    state = MatchState("local")
+    state.ball.x = state.left.x + state.left.width + BALL_RADIUS
+    state.ball.y = state.left.y + 10
+    state.ball.vx = -state.ball.speed
+    state._bounce_off_paddles()
+    assert state.last_event == "paddle"
+
+    state = MatchState("local")
+    state.ball.y = 0
+    state.ball.vy = -state.ball.speed
+    state._bounce_off_walls()
+    assert state.last_event == "wall"
+
+    state = MatchState("local")
+    state.ball.x = -BALL_RADIUS - 1
+    state._score_if_needed()
+    assert state.last_event == "score"
+
+
+def test_retro_music_and_sfx_buffers_are_generated_for_game_events():
+    effects = build_retro_sfx()
+    music = build_retro_music()
+    assert set(effects) == {"paddle", "wall", "score", "menu"}
+    assert music.startswith(b"RIFF")
+    assert music[8:12] == b"WAVE"
+    for sample in effects.values():
+        assert len(sample) > 0
+        assert sample[:2] != b"\x00\x00"
