@@ -64,7 +64,9 @@ def test_ai_moves_only_toward_an_approaching_ball_and_is_capped():
     state.update_ai(1)
     assert state.right.y == initial_y
     state.ball.vx = 1
+    state.ball.y = state.right.center_y + 100
+    state.update_ai(0.1)
+    assert state.right.y == pytest.approx(initial_y + AI_SPEED * 0.1)
     state.ball.y = HEIGHT
-    state.update_ai(1)
+    state.update_ai(10)
     assert state.right.y == HEIGHT - PADDLE_HEIGHT
-    assert state.right.y - initial_y <= AI_SPEED + PADDLE_HEIGHT
