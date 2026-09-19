@@ -20,3 +20,18 @@ Press `1` for solo against the AI or `2` for two local players. The left paddle 
 ```
 
 Open this folder directly in VS Code and press F5 to debug the game.
+
+## Windows executable
+
+The ready-to-play executable is `dist/Pong.exe`. Double-click it in File Explorer, or run:
+
+```powershell
+.\dist\Pong.exe
+```
+
+To rebuild it from source, install the build dependency and run PyInstaller from the project root:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install --only-binary=:all: -r requirements-build.txt
+.\.venv\Scripts\python.exe -m PyInstaller --noconfirm --clean --onefile --windowed --name Pong main.py
+```
