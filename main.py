@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse
 import os
 
-from sounds import build_retro_music, build_retro_sfx
+from sounds import build_retro_sfx
 
 
 def configure_pygame(headless: bool):
@@ -25,7 +25,6 @@ def run(headless: bool = False, smoke_frames: int | None = None) -> None:
     pygame.init()
     pygame.mixer.init()
     fullscreen = False
-    music_volume = 0.6
     sfx_volume = 0.9
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Pong")
@@ -39,9 +38,6 @@ def run(headless: bool = False, smoke_frames: int | None = None) -> None:
     running = True
     retro_sfx = build_retro_sfx()
     sound_cache = {name: pygame.mixer.Sound(buffer) for name, buffer in retro_sfx.items()}
-    music_track = pygame.mixer.Sound(build_retro_music())
-    music_channel = pygame.mixer.Channel(0)
-    music_channel.set_volume(music_volume)
     for sound in sound_cache.values():
         sound.set_volume(sfx_volume)
     last_event = None
@@ -67,20 +63,11 @@ def run(headless: bool = False, smoke_frames: int | None = None) -> None:
         flags = pygame.FULLSCREEN if fullscreen else 0
         screen = pygame.display.set_mode((WIDTH, HEIGHT), flags)
 
-    def update_music_volume(value: float) -> None:
-        nonlocal music_volume
-        music_volume = value
-        if music_channel.get_busy():
-            music_channel.set_volume(music_volume)
-
     def update_sfx_volume(value: float) -> None:
         nonlocal sfx_volume
         sfx_volume = value
         for sound in sound_cache.values():
             sound.set_volume(sfx_volume)
-
-    if not headless:
-        music_channel.play(music_track, loops=-1)
 
     while running:
         seconds = min(clock.tick(120) / 1000, 0.05)
@@ -103,12 +90,6 @@ def run(headless: bool = False, smoke_frames: int | None = None) -> None:
                 elif screen_name == "settings" and event.key == pygame.K_SPACE:
                     screen_name = "menu"
                     play_sound("menu")
-                elif screen_name == "settings" and event.key == pygame.K_m:
-                    music_volume = max(0.0, min(1.0, music_volume - 0.1))
-                    update_music_volume(music_volume)
-                elif screen_name == "settings" and event.key == pygame.K_n:
-                    music_volume = max(0.0, min(1.0, music_volume + 0.1))
-                    update_music_volume(music_volume)
                 elif screen_name == "settings" and event.key == pygame.K_s:
                     sfx_volume = max(0.0, min(1.0, sfx_volume - 0.1))
                     update_sfx_volume(sfx_volume)
@@ -131,11 +112,9 @@ def run(headless: bool = False, smoke_frames: int | None = None) -> None:
         elif screen_name == "settings":
             draw_centered("Settings", title_font, 155)
             draw_centered(f"Fullscreen: {'On' if fullscreen else 'Off'}", text_font, 235)
-            draw_centered(f"Music volume: {music_volume:.1f}", text_font, 275)
-            draw_centered("M / N — Music -/+", text_font, 310)
-            draw_centered(f"SFX volume: {sfx_volume:.1f}", text_font, 350)
-            draw_centered("S / D — SFX -/+", text_font, 385)
-            draw_centered("F — Toggle Fullscreen   Space — Back to menu", text_font, 430)
+            draw_centered(f"SFX volume: {sfx_volume:.1f}", text_font, 300)
+            draw_centered("S / D — SFX -/+", text_font, 340)
+            draw_centered("F — Toggle Fullscreen   Space — Back to menu", text_font, 400)
         elif screen_name == "play" and state:
             pressed = pygame.key.get_pressed()
             scorer = state.step(
